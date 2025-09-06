@@ -1,41 +1,44 @@
-<<<<<<< HEAD
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SIH Project
+## *By team: Crowd-Sync*
 
-## Getting Started
+Developing a multi-platform project that on one hand enables citizens to capture and report civic issues like potholes, garbage spillage, faulty services etc with the click of a button, while on other hand equip municipal authorities with a streamlined dashboard to effectively look after, manage and resolve those issues.
 
-First, run the development server:
+## What We Have Built
 
-```bash
+- **Mobile App**: Easy-to-use interface for citizens to photograph and report civic issues
+- **Web Dashboard**: Real-time visualization tool for municipal staff to track and manage reports
+- **Secure Access**: Implementing a secure authentication system for officials.
+- **Backend**: Storing & Updating real-time reports from users using Firebase.
+
+## How to Run the Project In Your System
+
+1. **Clone the repository**: Copy the html code from the repo and paste it in VS Code or simply use the git clone command.
+
+2. **Install dependencies**: npm install
+
+3. **Set up environment variables**: setup your .env
+
+4. **Run the development server**:
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+5. **Open your browser**
+Navigate to `http://localhost:3000`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## TEAM
+- Dhruv Singh Rana - https://github.com/dsr-37
+- Yash Katheria - https://github.com/Yashcodes07
+- Bhavya - 
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## What's Next?
 
-## Learn More
+- AI model that intelligently recognizes user provided description & converts it into a concise sendable one regardless of the text language or variety.
+- An image classifier for analyzing the image that user is attaching on the report to only submit geniune queries and not some random stuff.
+- Citizen engagement features like voting on issue importance.
+- Implementing an automated routing engine to correctly allocate tasks to departments.
+- Mobile app optimization for low-connectivity areas
+- Other features are written on the SIH website but only feasible for the finale.
 
-To learn more about Next.js, take a look at the following resources:
+## Found a Bug?
+Find any issues or have suggestions? Feel free to open an issue or submit a pull request. Every contribution helps!
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-=======
-# SIH-Project-
-Open source Project for SIH 
->>>>>>> 4919cbafb81639f78751a8388fc8307f5232be95
+---
