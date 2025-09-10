@@ -20,8 +20,8 @@ export default function Home() {
                 <span className="text-blue-600 block">Make Jharkhand Better</span>
               </h1>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                Empowering citizens of Jharkhand to report and resolve civic problems faster.
-                Together, we can create cleaner and safer cities.
+                Tired of waiting for change? Take action to resolve civic problems in Jharkhand. With us, you can report issues 
+                quickly and help build cleaner, safer cities, together.
               </p>
 
               {/* Call to Action */}
@@ -33,7 +33,7 @@ export default function Home() {
                   View Live Dashboard
                 </button>
                 <button
-                  onClick={() => router.push("/dashboard")}
+                  onClick={() => router.push("/reports")}
                   className="px-8 py-4 bg-transparent border-2 border-blue-600 text-blue-600 font-semibold rounded-xl hover:bg-blue-50 transition-colors"
                 >
                   View Reports Summary
