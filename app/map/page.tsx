@@ -75,23 +75,23 @@ export default function MapView() {
     }));
   }, [filteredReports]);
 
-  // Timeline data for last 7 days
+  // Timeline data for last 6 months
   const timelineData = useMemo(() => {
-    const last7Days = Array.from({ length: 7 }, (_, i) => {
+    const last6months = Array.from({ length: 6 }, (_, i) => {
       const date = new Date();
-      date.setDate(date.getDate() - i);
+      date.setMonth(date.getMonth() - i);
       return date;
     }).reverse();
 
-    return last7Days.map(date => {
-      const dayReports = reports.filter(report => {
+    return last6months.map(date => {
+      const monthReports = reports.filter(report => {
         const reportDate = new Date(report.timestamp);
-        return reportDate.toDateString() === date.toDateString();
+        return reportDate.getMonth() === date.getMonth() && reportDate.getFullYear() === date.getFullYear();
       });
 
       return {
         date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        reports: dayReports.length
+        reports: monthReports.length
       };
     });
   }, [reports]);
@@ -182,7 +182,7 @@ export default function MapView() {
       <div className="max-w-[90%] mx-auto px-4 py-6">
         <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
           {/* Left Column - Map & Timeline (3/5 width) */}
-          <div className="xl:col-span-3 space-y-6">
+          <div className="xl:col-span-3 flex flex-col gap-6">
             {/* Filters - Full Width */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <select
@@ -207,8 +207,8 @@ export default function MapView() {
             </div>
 
             {/* Map */}
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-              <div style={{ height: '500px', width: '100%' }}>
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden flex-grow">
+              <div style={{ height: '65vh', width: '100%' }}>
                 <MapContainer
                   center={[23.6345, 85.3803]}
                   zoom={7}
@@ -236,7 +236,7 @@ export default function MapView() {
 
             {/* Timeline */}
             <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Reports Timeline (Last 7 Days)</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Reports Timeline (Last 6 Months)</h3>
               <div style={{ height: '250px' }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={timelineData}>

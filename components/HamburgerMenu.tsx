@@ -89,16 +89,6 @@ const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isOpen, onClose }) => {
                 Map View
                 <span className="ml-auto text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">Officer</span>
               </Link>
-              
-              <Link
-                href="/dashboard"
-                onClick={onClose}
-                className="flex items-center p-4 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 text-gray-700 font-medium border border-transparent hover:border-blue-200"
-              >
-                <span className="mr-3 text-xl">📈</span>
-                Dashboard
-                <span className="ml-auto text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">Officer</span>
-              </Link>
             </>
           )}
 

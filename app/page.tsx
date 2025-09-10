@@ -1,8 +1,6 @@
 "use client";
 
-import Image from "next/image";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 
 export default function Home() {
   const router = useRouter();
@@ -15,7 +13,7 @@ export default function Home() {
           <div className="text-center max-w-4xl mx-auto">
             {/* Centered Content */}
             <div className="space-y-6">
-              <h1 className="text-6xl font-bold text-gray-800 leading-tight">
+              <h1 className="text-7xl font-bold text-gray-800 leading-tight">
                 Report Civic Issues,
                 <span className="text-blue-600 block">Make Jharkhand Better</span>
               </h1>

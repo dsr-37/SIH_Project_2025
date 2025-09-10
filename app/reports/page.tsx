@@ -6,11 +6,10 @@ import { CivicReport, CATEGORIES } from '@/lib/mockData';
 import { formatTime } from '@/lib/utils';
 import { useSession } from 'next-auth/react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { eachMonthOfInterval, format, subMonths } from 'date-fns';
 
 export default function Reports() {
   const { data: session } = useSession();
-  const reports = useReports();
+  const [reports, setReports] = useState(() => useReports()); // Make reports state to allow updates
   const [statusFilter, setStatusFilter] = useState<'All' | 'Pending' | 'In-Progress' | 'Marked' | 'Resolved'>('All');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedReport, setSelectedReport] = useState<CivicReport | null>(null);
@@ -27,26 +26,53 @@ export default function Reports() {
     return filtered;
   }, [reports, statusFilter, selectedCategory]);
 
-  const months = eachMonthOfInterval({
-    start: subMonths(new Date(), 11),
-    end: new Date()
-  });
-  // Generate bar graph data for pending reports by month
-  const barGraphData = months.map(date => ({
-    month: format(date, 'MMM yy'),
-    count: reports.filter(r =>
-      r.status === 'Pending' &&
-      r.category === selectedCategory &&
-      new Date(r.timestamp).getFullYear() === date.getFullYear() &&
-      new Date(r.timestamp).getMonth() === date.getMonth()
-    ).length
-  }));
+  // Real bar graph data for pending reports by month
+  const barGraphData = useMemo(() => {
+    const pendingReports = reports.filter(r => r.status === 'Pending');
+    const categoryReports = selectedCategory === 'All' 
+      ? pendingReports 
+      : pendingReports.filter(r => r.category === selectedCategory);
 
-  // Mock vote counts (you mentioned they change randomly for hackathon)
+    // Create last 12 months
+    const months = [];
+    for (let i = 11; i >= 0; i--) {
+      const date = new Date();
+      date.setMonth(date.getMonth() - i);
+      const monthName = date.toLocaleDateString('en-US', { month: 'short' });
+      const year = date.getFullYear();
+      
+      // Count actual reports in this month
+      const count = categoryReports.filter(report => {
+        const reportDate = new Date(report.timestamp);
+        return reportDate.getMonth() === date.getMonth() && 
+               reportDate.getFullYear() === date.getFullYear();
+      }).length;
+      
+      months.push({
+        month: `${monthName} ${year.toString().slice(-2)}`,
+        count,
+        fullMonth: monthName
+      });
+    }
+    
+    return months;
+  }, [reports, selectedCategory]);
+
+  // Fixed vote counts with positive values and totalUsers = 50
   const getVoteData = (reportId: string) => {
     const seed = reportId.charCodeAt(0);
     const upvotes = Math.max(0, Math.floor(Math.abs(Math.sin(seed) * 20)) + 5);
     const downvotes = Math.max(0, Math.floor(Math.abs(Math.cos(seed) * 10)));
+    
+    // Special case for report ID 15 - set to just below 70% threshold
+    if (reportId === '15') {
+      return {
+        upvotes: 34, // 34/50 = 68% - just below 70% threshold
+        downvotes: 3,
+        totalUsers: 50
+      };
+    }
+    
     return { upvotes, downvotes, totalUsers: 50 };
   };
 
@@ -64,11 +90,41 @@ export default function Reports() {
       ...prev,
       [reportId]: newVote
     }));
+
+    // Special logic for report ID 15 - auto-resolve at 70% threshold
+    if (reportId === '15' && voteType === 'up' && currentVote !== 'up') {
+      // Update the report status to Resolved
+      setReports(prevReports => 
+        prevReports.map(report => 
+          report.id === reportId 
+            ? { ...report, status: 'Resolved' as const }
+            : report
+        )
+      );
+      
+      // Update selected report if it's the one being voted on
+      if (selectedReport?.id === reportId) {
+        setSelectedReport(prev => prev ? { ...prev, status: 'Resolved' } : null);
+      }
+    }
   };
 
   const calculateVerificationRate = (reportId: string) => {
     const { upvotes, totalUsers } = getVoteData(reportId);
-    return Math.round((upvotes / totalUsers) * 100);
+    const currentVote = userVotes[reportId];
+    
+    // Adjust upvotes based on current user vote
+    let adjustedUpvotes = upvotes;
+    if (currentVote === 'up') {
+      adjustedUpvotes += 1;
+    }
+    
+    // Special case for report 15 - if user upvoted, show 70%+
+    if (reportId === '15' && currentVote === 'up') {
+      return 70; // Just hit the threshold
+    }
+    
+    return Math.round((adjustedUpvotes / totalUsers) * 100);
   };
 
   return (
@@ -84,7 +140,6 @@ export default function Reports() {
       <div className="max-w-[85%] mx-auto px-6 py-6">
         {/* Filters */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          {/* Status Filter */}
           <div className="flex items-center space-x-4 overflow-x-auto pb-2">
             {['All', 'Pending', 'In-Progress', 'Marked', 'Resolved'].map(status => (
               <button
@@ -101,7 +156,6 @@ export default function Reports() {
             ))}
           </div>
 
-          {/* Category Filter */}
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
@@ -115,7 +169,7 @@ export default function Reports() {
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          {/* Main Feed - Takes 1/3 width */}
+          {/* Main Feed */}
           <div className="xl:col-span-1 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200">
               <h2 className="text-xl font-bold text-gray-900">Live Community Feed</h2>
@@ -143,7 +197,8 @@ export default function Reports() {
                       <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase ${
                         report.status === 'Pending' ? 'bg-red-100 text-red-800' :
                         report.status === 'In-Progress' ? 'bg-yellow-100 text-yellow-800' :
-                        report.status === 'Marked' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
+                        report.status === 'Marked' ? 'bg-blue-100 text-blue-800' : 
+                        report.status === 'Resolved' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                       }`}>
                         {report.status}
                       </span>
@@ -153,8 +208,8 @@ export default function Reports() {
                     
                     {report.status === 'Marked' && (
                       <div className="mt-2 flex items-center space-x-2 text-xs text-gray-500">
-                        <span>👍 {getVoteData(report.id).upvotes}</span>
-                        <span>👎 {getVoteData(report.id).downvotes}</span>
+                        <span>👍 {getVoteData(report.id).upvotes + (userVotes[report.id] === 'up' ? 1 : 0)}</span>
+                        <span>👎 {getVoteData(report.id).downvotes + (userVotes[report.id] === 'down' ? 1 : 0)}</span>
                       </div>
                     )}
                   </div>
@@ -163,7 +218,7 @@ export default function Reports() {
             </div>
           </div>
 
-          {/* Right Side - Takes 2/3 width */}
+          {/* Right Side */}
           <div className="xl:col-span-2 space-y-6">
             {/* Bar Graph */}
             <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
@@ -236,7 +291,8 @@ export default function Reports() {
                           <span className={`px-4 py-2 rounded-full text-sm font-bold uppercase ${
                             selectedReport.status === 'Pending' ? 'bg-red-100 text-red-800' :
                             selectedReport.status === 'In-Progress' ? 'bg-yellow-100 text-yellow-800' :
-                            selectedReport.status === 'Marked' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
+                            selectedReport.status === 'Marked' ? 'bg-blue-100 text-blue-800' : 
+                            selectedReport.status === 'Resolved' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                           }`}>
                             {selectedReport.status}
                           </span>
@@ -294,8 +350,16 @@ export default function Reports() {
                             ></div>
                           </div>
                           <p className="text-xs text-gray-500 mt-2">
-                            {getVoteData(selectedReport.id).upvotes} out of {getVoteData(selectedReport.id).totalUsers} community members verified
+                            {getVoteData(selectedReport.id).upvotes + (userVotes[selectedReport.id] === 'up' ? 1 : 0)} out of {getVoteData(selectedReport.id).totalUsers} community members verified
                           </p>
+                          
+                          {selectedReport.id === '15' && calculateVerificationRate(selectedReport.id) >= 70 && (
+                            <div className="mt-3 p-3 bg-green-100 border border-green-200 rounded-lg">
+                              <p className="text-sm font-semibold text-green-800">
+                                🎉 Threshold reached! This report has been automatically resolved.
+                              </p>
+                            </div>
+                          )}
                         </div>
 
                         <div className="flex space-x-4">
@@ -308,7 +372,7 @@ export default function Reports() {
                             }`}
                           >
                             <span className="text-xl">👍</span>
-                            <span>Upvote ({getVoteData(selectedReport.id).upvotes})</span>
+                            <span>Upvote ({getVoteData(selectedReport.id).upvotes + (userVotes[selectedReport.id] === 'up' ? 1 : 0)})</span>
                           </button>
 
                           <button
@@ -320,7 +384,7 @@ export default function Reports() {
                             }`}
                           >
                             <span className="text-xl">👎</span>
-                            <span>Downvote ({getVoteData(selectedReport.id).downvotes})</span>
+                            <span>Downvote ({getVoteData(selectedReport.id).downvotes + (userVotes[selectedReport.id] === 'down' ? 1 : 0)})</span>
                           </button>
                         </div>
                       </div>
